@@ -8,7 +8,7 @@ from agno.tools.yfinance import YFinanceTools
 agent_storage: str = "tmp/agents.db"
 
 web_agent = Agent(
-    name="Web Agent",
+    name="Agent Angel Conforme",
     model=OpenAIChat(id="gpt-4o"),
     tools=[DuckDuckGoTools()],
     instructions=["Always include sources"],
