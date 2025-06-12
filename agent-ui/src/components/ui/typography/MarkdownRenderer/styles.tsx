@@ -1,6 +1,6 @@
 'use client'
 
-import { FC, useState } from 'react'
+import { FC, useState, useEffect } from 'react' // Importamos useEffect
 
 import Image from 'next/image'
 import Link from 'next/link'
@@ -19,7 +19,7 @@ import type {
   BlockquoteProps,
   AnchorLinkProps,
   HeadingProps,
-  ImgProps,
+  ImgProps, // <--- Este es el tipo de 'src' que revisamos
   ParagraphProps,
   TableHeaderCellProps,
   TableProps,
@@ -174,8 +174,24 @@ const Heading6 = ({ className, ...props }: HeadingProps) => (
 
 const Img = ({ src, alt }: ImgProps) => {
   const [error, setError] = useState(false)
+  const [displaySrc, setDisplaySrc] = useState<string>('') // Nuevo estado para la URL a mostrar
 
-  if (!src) return null
+  // Efecto para manejar la conversión de Blob a URL
+  useEffect(() => {
+    if (typeof src === 'string') {
+      setDisplaySrc(src) // Si ya es string, úsalo directamente
+    } else if (src instanceof Blob) {
+      const objectUrl = URL.createObjectURL(src) // Crea una URL temporal para el Blob
+      setDisplaySrc(objectUrl)
+      
+      // Limpia la URL del objeto cuando el componente se desmonte para liberar memoria
+      return () => {
+        URL.revokeObjectURL(objectUrl)
+      }
+    }
+  }, [src]) // Re-ejecuta este efecto si 'src' cambia
+
+  if (!src) return null // No mostrar nada si no hay src
 
   return (
     <div className="w-full max-w-xl">
@@ -183,18 +199,19 @@ const Img = ({ src, alt }: ImgProps) => {
         <div className="flex h-40 flex-col items-center justify-center gap-2 rounded-md bg-secondary/50 text-muted">
           <Paragraph className="text-primary">Image unavailable</Paragraph>
           <Link
-            href={src}
+            href={displaySrc} // Usamos el estado `displaySrc` aquí
             target="_blank"
             className="max-w-md truncate underline"
           >
-            {src}
+            {/* Aquí puedes usar un texto alternativo si displaySrc es largo */}
+            {displaySrc || 'Enlace a imagen'} 
           </Link>
         </div>
       ) : (
         <Image
-          src={src}
-          width={1280}
-          height={720}
+          src={displaySrc} // Usamos el estado `displaySrc` aquí
+          width={1280} // Mantengo tus anchos y altos originales aquí
+          height={720} // Mantengo tus anchos y altos originales aquí
           alt={alt ?? 'Rendered image'}
           className="size-full rounded-md object-cover"
           onError={() => setError(true)}
